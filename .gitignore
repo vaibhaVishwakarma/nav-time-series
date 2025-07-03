@@ -1,0 +1,5 @@
+*.txt
+.env
+nav_time_series.csv
+returns.csv
+__pycache__
