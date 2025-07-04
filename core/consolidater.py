@@ -2,8 +2,8 @@ import os
 import pandas as pd
 import numpy as np
 
-def consolidater(directory_path = "./", output_nav_file_path= "nav_time_series.csv"):
-    text_files = list(filter( lambda x : x.endswith(".txt"), os.listdir(directory_path)))
+def consolidater(directory_path = "historical_nav", output_nav_file_path= "nav_time_series.csv"):
+    text_files = list(filter( lambda x : x.endswith(".txt") , os.listdir(directory_path)))
 
     total_df = pd.DataFrame()
     for file in text_files:
@@ -25,6 +25,6 @@ def consolidater(directory_path = "./", output_nav_file_path= "nav_time_series.c
 if __name__ == "__main__":
     
     directory_path =  "Historical_nav/"
-    output_nav_file_path = "Historical_nav/nav_time_series.csv"
+    output_nav_file_path = "Historical_nav/nav_time_series_PPFAS.csv"
     total_df = consolidater(directory_path , output_nav_file_path)
     print(total_df.iloc[:100])

@@ -1,5 +1,7 @@
 *.txt
 .env
-nav_time_series.csv
-returns.csv
 __pycache__
+**/*returns*/
+**/*nav_time_series*/
+**/*nav_time_series.csv
+**/*returns.csv

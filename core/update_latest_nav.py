@@ -2,9 +2,7 @@
 import os
 import pandas as pd
 import numpy as np
-from consolidater import consolidater
-
-
+from core.consolidater import consolidater
 
 
 def update_latest_nav(historical_df, daily_nav_file_path=r"../dailyNAV/NAVAll_2025-06-29.txt", historical_nav_file_path="nav_time_series.csv"):
@@ -14,7 +12,8 @@ def update_latest_nav(historical_df, daily_nav_file_path=r"../dailyNAV/NAVAll_20
     df["Net Asset Value"] = df["Net Asset Value"].replace("N.A." , np.nan).fillna("0").astype(np.float64)
 
     df["Date"] = pd.to_datetime(df["Date"], errors = "coerce")
-    df = df[df["Date"].dt.date == pd.Timestamp.today().date() - pd.Timedelta(days=1)] # day = 3 processes 27 if today is 30
+    t = daily_nav_file_path.split("_")[-1].split(".txt")[0]
+    df = df[df["Date"].dt.date == pd.to_datetime(t).date() - pd.Timedelta(days=1)] # day = 3 processes 27 if today is 30
     df["Date"] = df["Date"].dt.strftime('%Y-%m-%d')
     df["ISIN Div Reinvestment"] = df["ISIN Div Reinvestment"].replace("-","")
     df["ISIN Div Payout/ ISIN Growth"] = df["ISIN Div Payout/ ISIN Growth"].replace("-","")
@@ -51,5 +50,5 @@ if __name__ == "__main__":
     #%%
     daily_nav_file = r"../dailyNAV/NAVAll_2025-06-29.txt"
     updated_df = update_latest_nav(historical_df=total_df, daily_nav_file_path=daily_nav_file , historical_nav_file_path=historical_nav_file_path)
-    print(updated_df.head(10))
+    # print(updated_df.head(10))
 # %%

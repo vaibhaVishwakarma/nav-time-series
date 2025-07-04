@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime
 import os
-def download_amfi_nav(output_dir="dailyNAV"):
+def download_amfi_nav(output_dir="daily_nav"):
     # AMFI daily NAV data URL
     amfi_url = "https://www.amfiindia.com/spages/NAVAll.txt"
     # Create output directory if not exists
@@ -18,5 +18,6 @@ def download_amfi_nav(output_dir="dailyNAV"):
         print(f"NAV data saved to {file_path}")
     except requests.exceptions.RequestException as e:
         print(f"Failed to download AMFI NAV data: {e}")
+    return file_path
 if __name__ == "__main__":
     download_amfi_nav()
