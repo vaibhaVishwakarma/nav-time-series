@@ -5,6 +5,9 @@ import numpy as np
 # df = pd.read_csv("nav_time_series.csv",delimiter=";").dropna()
 # return_file_path = "returns_test.csv"
 
+ROUND_DECIMALS = 6 
+
+
 def calculate_simple_returns(df, return_file_path="returns_simple.csv"):
     df = df.copy()
     df['Date'] = pd.to_datetime(df['Date'])
@@ -21,7 +24,7 @@ def calculate_simple_returns(df, return_file_path="returns_simple.csv"):
         if past_date < nav_wide.index[0]:
             return pd.Series([None] * len(latest_nav), index=latest_nav.index)
         past_nav = nav_wide.loc[:past_date].iloc[-1]
-        return round(((latest_nav - past_nav) / past_nav * 100), 6)
+        return round(((latest_nav - past_nav) / past_nav * 100), ROUND_DECIMALS)
     # Step 5: Compute period returns SIMPLE
     returns = pd.DataFrame({
         '1W Return': compute_return(7),
@@ -36,12 +39,12 @@ def calculate_simple_returns(df, return_file_path="returns_simple.csv"):
     if current_year_start > nav_wide.index[0]:
         ytd_nav = nav_wide.loc[:current_year_start].iloc[-1]
         # print(nav_wide.loc[:current_year_start])
-        returns['YTD Return'] = round(((latest_nav - ytd_nav) / ytd_nav * 100), 6)
+        returns['YTD Return'] = round(((latest_nav - ytd_nav) / ytd_nav * 100), ROUND_DECIMALS)
     else:
         returns['YTD Return'] = None
     # Step 7: Total Return from first available NAV
     first_nav = nav_wide.iloc[0]
-    returns['Total Return'] = round(((latest_nav - first_nav) / first_nav * 100), 6)
+    returns['Total Return'] = round(((latest_nav - first_nav) / first_nav * 100), ROUND_DECIMALS)
     # Step 8: Merge with metadata (Scheme Name + ISINs)
     latest_meta = df.sort_values('Date').groupby('Scheme Code').last()[[
         'Scheme Name', 'ISIN Div Payout/ISIN Growth', 'ISIN Div Reinvestment'
@@ -87,7 +90,7 @@ def calculate_cagr_returns(df, return_file_path="returns_cagr.csv"):
             return pd.Series([None] * len(latest_nav), index=latest_nav.index)
         past_nav = nav_wide.loc[:past_date].iloc[-1]
         cagr = (latest_nav / past_nav) ** (1 / years) - 1
-        return round(cagr * 100, 6)
+        return round(cagr * 100, ROUND_DECIMALS)
     # Step 5: Compute period returns
     returns = pd.DataFrame({
         '1W Return': compute_return(7),
@@ -101,8 +104,11 @@ def calculate_cagr_returns(df, return_file_path="returns_cagr.csv"):
     current_year_start = pd.Timestamp(f"{pd.Timestamp.today().year}-01-01")
     if current_year_start > nav_wide.index[0]:
         ytd_nav = nav_wide.loc[:current_year_start].iloc[-1]
+        first_day_of_year = pd.Timestamp(f"{pd.Timestamp.today().year}-01-01")
+        years = (today - first_day_of_year).days / 365
+        today = pd.Timestamp.today()
         # print(nav_wide.loc[:current_year_start])
-        returns['YTD Return'] = round((((latest_nav / ytd_nav)  - 1)* 100), 6)
+        returns['YTD Return'] = round((((latest_nav / ytd_nav) ** (1 / years)  - 1)* 100), ROUND_DECIMALS)
     else:
         returns['YTD Return'] = None
     # Step 7: Total Return from first available NAV
@@ -111,7 +117,7 @@ def calculate_cagr_returns(df, return_file_path="returns_cagr.csv"):
     today = pd.Timestamp.today()
     years = (today - beggining).days / 365
     
-    returns['Total Return'] = round(((latest_nav / first_nav) ** (1 / years) - 1), 6)
+    returns['Total Return'] = round(((latest_nav / first_nav) ** (1 / years) - 1), ROUND_DECIMALS)
     # Step 8: Merge with metadata (Scheme Name + ISINs)
     latest_meta = df.sort_values('Date').groupby('Scheme Code').last()[[
         'Scheme Name', 'ISIN Div Payout/ISIN Growth', 'ISIN Div Reinvestment'
