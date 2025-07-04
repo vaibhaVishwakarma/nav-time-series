@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 def daily_job(debug=False):
     run_hour = 17  # 5 PM
     log_file = "main_run.log"
-    script_to_run = ["core.main"]
+    script_to_run = "core.daily_calc"
 
     if not debug:
         now = datetime.now()
@@ -18,14 +18,14 @@ def daily_job(debug=False):
         print(f"Waiting {int(wait_seconds)} seconds until 5 PM...")
         time.sleep(wait_seconds)
     else:
-        print("DEBUG MODE: Skipping wait and running main.py immediately")
+        print("DEBUG MODE: Skipping wait and running daily_calc.py immediately")
 
     start = datetime.now()
 
     with open(log_file, "a", encoding="utf-8") as log:
-        log.write(f"\n[{start.strftime('%Y-%m-%d %H:%M:%S')}] Running main.py\n")
+        log.write(f"\n[{start.strftime('%Y-%m-%d %H:%M:%S')}] Running daily_calc.py\n")
 
-        result = subprocess.run([sys.executable, "-m", "core.main"], stdout=log, stderr=log)
+        result = subprocess.run([sys.executable, "-m", script_to_run], stdout=log, stderr=log)
 
         end = datetime.now()
         duration_seconds = round((end - start).total_seconds(), 2)
