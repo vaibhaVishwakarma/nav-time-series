@@ -36,5 +36,5 @@ def daily_job(debug=False):
 
 if __name__ == "__main__":
     # Set debug=True to skip waiting for 5 PM
-    daily_job(debug=False)
+    daily_job(debug=True)
 

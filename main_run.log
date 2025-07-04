@@ -1,0 +1,7 @@
+Downloading NAV data for 2025-07-04...
+NAV data saved to daily_nav\NAVAll_2025-07-04.txt
+skipping updates as last updated for same day
+
+[2025-07-04 23:38:41] Running daily_calc.py
+[2025-07-04 23:39:02] Finished with exit code 0
+⏱️Time taken: 20.85 seconds

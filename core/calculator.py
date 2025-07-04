@@ -105,8 +105,8 @@ def calculate_cagr_returns(df, return_file_path="returns_cagr.csv"):
     if current_year_start > nav_wide.index[0]:
         ytd_nav = nav_wide.loc[:current_year_start].iloc[-1]
         first_day_of_year = pd.Timestamp(f"{pd.Timestamp.today().year}-01-01")
-        years = (today - first_day_of_year).days / 365
         today = pd.Timestamp.today()
+        years = (today - first_day_of_year).days / 365
         # print(nav_wide.loc[:current_year_start])
         returns['YTD Return'] = round((((latest_nav / ytd_nav) ** (1 / years)  - 1)* 100), ROUND_DECIMALS)
     else:
