@@ -5,3 +5,4 @@ __pycache__
 **/*nav_time_series*/
 **/*nav_time_series.csv
 **/*returns.csv
+!requirements.txt
