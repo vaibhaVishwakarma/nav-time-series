@@ -19,13 +19,16 @@ directory_check(historical_nav_directory)
 directory_check(simple_returns_directory)
 directory_check(cagr_returns_directory)
 
-nav_file_path= os.path.join("nav_time_series.csv")
+nav_file_path = os.path.join("nav_time_series.csv")
+
 output_simple_returns_file_path= os.path.join(simple_returns_directory , f"simple_returns_as_on {pd.Timestamp.today().date()}.csv")
 output_cagr_returns_file_path= os.path.join(cagr_returns_directory , f"cagr_returns_as_on {pd.Timestamp.today().date()}.csv")
 
 daily_nav_file = download_amfi_nav()
 #%%
-historical_df = pd.read_csv(nav_file_path,delimiter=";").dropna()
+historical_df = pd.DataFrame()
+if os.path.exists(nav_file_path):
+    historical_df = pd.read_csv(nav_file_path,delimiter=";").dropna()     
 
 #%%
 updated_df = update_latest_nav(historical_df=historical_df,

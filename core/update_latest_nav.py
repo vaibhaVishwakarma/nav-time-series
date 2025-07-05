@@ -33,27 +33,32 @@ def update_latest_nav(historical_df, daily_nav_file_path=r"../dailyNAV/NAVAll_20
     df["Date"] = df["Date"].dt.strftime('%Y-%m-%d')
     df["ISIN Div Reinvestment"] = df["ISIN Div Reinvestment"].replace("-","")
     df["ISIN Div Payout/ ISIN Growth"] = df["ISIN Div Payout/ ISIN Growth"].replace("-","")
+    df.rename(columns={'ISIN Div Payout/ ISIN Growth': 'ISIN Div Payout/ISIN Growth'}, inplace=True)
 
 
-    data_to_store = ""
+    if not os.path.exists(historical_nav_file_path):
+        df.to_csv(historical_nav_file_path, index =False, sep=";")
 
-    for (idx , row) in df.iterrows():
-        row_data = ";".join(row.astype(str).values.tolist())
-        data_to_store += row_data + "\n"
+    else:
+        data_to_store = ""
 
-    start_char = "\n"
-    with open(historical_nav_file_path , "r") as f :
-        f.seek(0, 2)  # Move the file pointer to the end of the file
-        file_size = f.tell()
+        for (idx , row) in df.iterrows():
+            row_data = ";".join(row.astype(str).values.tolist())
+            data_to_store += row_data + "\n"
 
-        if file_size > 0:
-            f.seek(file_size - 1, 0)  # Move the file pointer back one byte from the end
-            last_char = f.read(1)  # Read one character
-            if last_char == "\n": start_char = ""
+        start_char = "\n"
+        with open(historical_nav_file_path , "r") as f :
+            f.seek(0, 2)  # Move the file pointer to the end of the file
+            file_size = f.tell()
 
-    if(data_to_store == "") : print("Nothing to store today")
-    with open(historical_nav_file_path , "a") as f :
-        f.write(start_char+data_to_store)
+            if file_size > 0:
+                f.seek(file_size - 1, 0)  # Move the file pointer back one byte from the end
+                last_char = f.read(1)  # Read one character
+                if last_char == "\n": start_char = ""
+
+        if(data_to_store == "") : print("Nothing to store today")
+        with open(historical_nav_file_path , "a") as f :
+            f.write(start_char+data_to_store)
 
     return pd.concat([historical_df, df])
 
