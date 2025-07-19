@@ -19,8 +19,8 @@ def check_last_updated(date = "" , file_path="last_updated.txt"):
 def update_latest_nav(historical_df, daily_nav_file_path=r"../dailyNAV/NAVAll_2025-06-29.txt", historical_nav_file_path="nav_time_series.csv"):
     date = daily_nav_file_path.split("_")[-1].split(".txt")[0]
     last_update_date = check_last_updated(date)
-    print("skipping updates as last updated for same day")
     if last_update_date == date:
+        print("skipping updates as last updated for same day")
         return historical_df
 
     df = pd.read_csv(daily_nav_file_path , delimiter=";")[["Scheme Code" , "Scheme Name", "ISIN Div Payout/ ISIN Growth", "ISIN Div Reinvestment", "Net Asset Value" , "Date"]]
@@ -29,7 +29,7 @@ def update_latest_nav(historical_df, daily_nav_file_path=r"../dailyNAV/NAVAll_20
     df["Net Asset Value"] = df["Net Asset Value"].replace("N.A." , np.nan).fillna("0").astype(np.float64)
 
     df["Date"] = pd.to_datetime(df["Date"], errors = "coerce")
-    df = df[df["Date"].dt.date ==  pd.to_datetime(date).date() - pd.Timedelta(days=1)] # day = 3 processes 27 if today is 30
+    df = df[df["Date"].dt.date ==  pd.to_datetime(date).date() - pd.Timedelta(days=0)] # day = 3 processes 27 if today is 30
     df["Date"] = df["Date"].dt.strftime('%Y-%m-%d')
     df["ISIN Div Reinvestment"] = df["ISIN Div Reinvestment"].replace("-","")
     df["ISIN Div Payout/ ISIN Growth"] = df["ISIN Div Payout/ ISIN Growth"].replace("-","")

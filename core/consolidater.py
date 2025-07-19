@@ -7,6 +7,7 @@ def consolidater(directory_path = "historical_nav", output_nav_file_path= "nav_t
 
     total_df = pd.DataFrame()
     for file in text_files:
+        print(file)
         df = pd.read_csv(os.path.join(directory_path , file) ,delimiter=";" )
         df = df[df["Scheme Code"].fillna("-").astype(str).apply(lambda x : x.isdigit())]
 

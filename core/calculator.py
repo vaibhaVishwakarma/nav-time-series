@@ -8,7 +8,7 @@ import numpy as np
 ROUND_DECIMALS = 6 
 
 
-def calculate_simple_returns(df, return_file_path="returns_simple.csv"):
+def calculate_returns(df, return_file_path="returns_simple.csv"):
     df = df.copy()
     df['Date'] = pd.to_datetime(df['Date'])
     # Step 1: Aggregate duplicate NAV entries (use mean or last as needed)
@@ -18,120 +18,72 @@ def calculate_simple_returns(df, return_file_path="returns_simple.csv"):
     # Step 3: Get latest NAV (forward fill missing NAVs)
     nav_wide = nav_wide.ffill()
     latest_nav = nav_wide.iloc[-1]
-    # Step 4: Return computation function
-    def compute_return(delta_days):
+
+    formula_simple = lambda latest_nav, past_nav : round(((latest_nav - past_nav) / past_nav * 100), ROUND_DECIMALS)
+    formula_cagr = lambda latest_nav, past_nav, years : round(((latest_nav / past_nav) ** (1 / years) - 1) *100, ROUND_DECIMALS)
+
+    def compute_return_simple(delta_days):
         past_date = nav_wide.index[-1] - pd.Timedelta(days=delta_days)
         if past_date < nav_wide.index[0]:
             return pd.Series([None] * len(latest_nav), index=latest_nav.index)
         past_nav = nav_wide.loc[:past_date].iloc[-1]
-        return round(((latest_nav - past_nav) / past_nav * 100), ROUND_DECIMALS)
-    # Step 5: Compute period returns SIMPLE
-    returns = pd.DataFrame({
-        '1W Return': compute_return(7),
-        '1M Return': compute_return(30),
-        '1Y Return': compute_return(365),
-        '3Y Return': compute_return(3 * 365),
-        '5Y Return': compute_return(5 * 365),
-    })
-
-    # Step 6: Year-To-Date Return
-    current_year_start = pd.Timestamp(f"{pd.Timestamp.today().year}-01-01")
-    if current_year_start > nav_wide.index[0]:
-        ytd_nav = nav_wide.loc[:current_year_start].iloc[-1]
-        # print(nav_wide.loc[:current_year_start])
-        returns['YTD Return'] = round(((latest_nav - ytd_nav) / ytd_nav * 100), ROUND_DECIMALS)
-    else:
-        returns['YTD Return'] = None
-    # Step 7: Total Return from first available NAV
-    first_nav = nav_wide.iloc[0]
-    returns['Total Return'] = round(((latest_nav - first_nav) / first_nav * 100), ROUND_DECIMALS)
-    # Step 8: Merge with metadata (Scheme Name + ISINs)
-    latest_meta = df.sort_values('Date').groupby('Scheme Code').last()[[
-        'Scheme Name', 'ISIN Div Payout/ISIN Growth', 'ISIN Div Reinvestment'
-    ]]
-    # Step 9: Merge returns with metadata
-    result_df = returns.merge(latest_meta, left_index=True, right_index=True)
-    result_df = result_df.reset_index()  # Scheme Code becomes column again
-    # Step 10: Sort by Total Return
-    result_df = result_df.sort_values('Total Return', ascending=False)
-
-    # Step 11: Format return values as percentage strings
-    return_cols = ['1W Return', '1M Return', '1Y Return', '3Y Return', '5Y Return', 'YTD Return', 'Total Return']
-
-    # Step 12: Arrange final column order
-    final_cols = [
-        'ISIN Div Payout/ISIN Growth', 'ISIN Div Reinvestment',
-        'Scheme Code', 'Scheme Name'
-    ] + return_cols
-
-    total_returns_df = result_df[final_cols]
-    total_returns_df = total_returns_df[~total_returns_df.duplicated(subset=["ISIN Div Payout/ISIN Growth"], keep=False)]
-    # Step 13: Save to CSV using semicolon as delimiter
-    total_returns_df.to_csv(return_file_path, index=False, sep=";")
-
-    return total_returns_df
-
-def calculate_cagr_returns(df, return_file_path="returns_cagr.csv"):
-    df = df.copy()
-    df['Date'] = pd.to_datetime(df['Date'])
-    # Step 1: Aggregate duplicate NAV entries (use mean or last as needed)
-    df_grouped = df.groupby(['Date', 'Scheme Code'], as_index=False)['Net Asset Value'].mean()
-    # Step 2: Pivot NAVs: rows = dates, columns = scheme codes
-    nav_wide = df_grouped.pivot(index='Date', columns='Scheme Code', values='Net Asset Value').sort_index()
-    # Step 3: Get latest NAV (forward fill missing NAVs)
-    nav_wide = nav_wide.ffill()
-    latest_nav = nav_wide.iloc[-1]
-    # Step 4: Return computation function CAGR 
-
-    def compute_return(delta_days):
+        return formula_simple(latest_nav , past_nav)
+    
+    def compute_return_cagr(delta_days):
         years = delta_days/365
         past_date = nav_wide.index[-1] - pd.Timedelta(days=delta_days)
         if past_date < nav_wide.index[0]:
             return pd.Series([None] * len(latest_nav), index=latest_nav.index)
         past_nav = nav_wide.loc[:past_date].iloc[-1]
-        cagr = (latest_nav / past_nav) ** (1 / years) - 1
-        return round(cagr * 100, ROUND_DECIMALS)
-    # Step 5: Compute period returns
+        return formula_cagr(latest_nav, past_nav, years)
+    
+
     returns = pd.DataFrame({
-        '1W Return': compute_return(7),
-        '1M Return': compute_return(30),
-        '1Y Return': compute_return(365),
-        '3Y Return': compute_return(3 * 365),
-        '5Y Return': compute_return(5 * 365),
+        'return_1m': compute_return_simple(30),
+        'return_3m': compute_return_simple(3*30),
+        'return_6m': compute_return_simple(6*30),
+        'return_1y': compute_return_simple(365),
+        'return_3y': compute_return_simple(3 * 365),
+        'return_5y': compute_return_simple(5 * 365),
+
+        'return_1y_cagr': compute_return_cagr(365),
+        'return_3y_cagr': compute_return_cagr(3 * 365),
+        'return_5y_cagr': compute_return_cagr(5 * 365),
+        'return_10y_cagr': compute_return_cagr(10* 365),
     })
 
-    # Step 6: Year-To-Date Return
+    # YTD
     current_year_start = pd.Timestamp(f"{pd.Timestamp.today().year}-01-01")
-    if current_year_start > nav_wide.index[0]:
-        ytd_nav = nav_wide.loc[:current_year_start].iloc[-1]
-        first_day_of_year = pd.Timestamp(f"{pd.Timestamp.today().year}-01-01")
-        today = pd.Timestamp.today()
-        years = (today - first_day_of_year).days / 365
-        # print(nav_wide.loc[:current_year_start])
-        returns['YTD Return'] = round((((latest_nav / ytd_nav) ** (1 / years)  - 1)* 100), ROUND_DECIMALS)
-    else:
-        returns['YTD Return'] = None
-    # Step 7: Total Return from first available NAV
-    first_nav = nav_wide.iloc[0]
-    beggining = nav_wide.index[0]
     today = pd.Timestamp.today()
-    years = (today - beggining).days / 365
-    
-    returns['Total Return'] = round(((latest_nav / first_nav) ** (1 / years) - 1), ROUND_DECIMALS)
-    # Step 8: Merge with metadata (Scheme Name + ISINs)
+    days = (today - current_year_start).days
+    returns["return_ytd"] = compute_return_simple(days)
+    returns["return_ytd_cagr"] = compute_return_cagr(days)
+
+    # total returns - since the day of first record
+    first_indexes = nav_wide.apply(lambda col: col.first_valid_index())
+    first_values = pd.Series({col: nav_wide.at[idx, col] for col, idx in first_indexes.items()})
+    today = pd.Timestamp.today().normalize()
+    delta_years = (today - first_indexes).dt.days / 365
+
+    returns["return_since_inception"] = formula_simple(latest_nav, first_values)
+    returns["return_since_inception_cagr"] = formula_cagr(latest_nav, first_values, delta_years)
+
+
+    # Merge with metadata (Scheme Name + ISINs)
     latest_meta = df.sort_values('Date').groupby('Scheme Code').last()[[
         'Scheme Name', 'ISIN Div Payout/ISIN Growth', 'ISIN Div Reinvestment'
     ]]
-    # Step 9: Merge returns with metadata
+
+    # Merge returns with metadata
     result_df = returns.merge(latest_meta, left_index=True, right_index=True)
     result_df = result_df.reset_index()  # Scheme Code becomes column again
-    # Step 10: Sort by Total Return
-    result_df = result_df.sort_values('Total Return', ascending=False)
+    # Sort by Total Return
+    result_df = result_df.sort_values('return_since_inception_cagr', ascending=False)
 
-    # Step 11: Format return values as percentage strings
-    return_cols = ['1W Return', '1M Return', '1Y Return', '3Y Return', '5Y Return', 'YTD Return', 'Total Return']
+    # Format return values as percentage strings
+    return_cols = ['return_1m','return_3m', 'return_6m', 'return_1y','return_3y','return_5y', 'return_ytd', 'return_ytd_cagr','return_1y_cagr','return_3y_cagr', 'return_5y_cagr', 'return_10y_cagr','return_since_inception','return_since_inception_cagr']
 
-    # Step 12: Arrange final column order
+    # Arrange final column order
     final_cols = [
         'ISIN Div Payout/ISIN Growth', 'ISIN Div Reinvestment',
         'Scheme Code', 'Scheme Name'
@@ -139,8 +91,7 @@ def calculate_cagr_returns(df, return_file_path="returns_cagr.csv"):
 
     total_returns_df = result_df[final_cols]
     total_returns_df = total_returns_df[~total_returns_df.duplicated(subset=["ISIN Div Payout/ISIN Growth"], keep=False)]
-    # Step 13: Save to CSV using semicolon as delimiter
+    # Save to CSV using semicolon as delimiter
     total_returns_df.to_csv(return_file_path, index=False, sep=";")
 
     return total_returns_df
-
