@@ -16,6 +16,8 @@ def consolidater(directory_path = "historical_nav", output_nav_file_path= "nav_t
         df["Date"] = pd.to_datetime(df['Date'], errors = "coerce").dt.strftime('%Y-%m-%d')
         df.dropna(subset=['Date',"Net Asset Value"], inplace=True)
         df["Net Asset Value"] =df["Net Asset Value"].astype(np.float64)
+        df = df[df["Net Asset Value"]!=0]
+        
 
         df = df.drop(["Sale Price" , "Repurchase Price"] , axis = 1)
         total_df = pd.concat([total_df, df])

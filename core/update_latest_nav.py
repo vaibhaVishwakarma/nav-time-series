@@ -11,17 +11,18 @@ def check_last_updated(date = "" , file_path="last_updated.txt"):
     else:
         last_updated_str = date
 
-    with open(file_path, "w") as f:
-        f.write(date)
-    
     return last_updated_str
 
 def update_latest_nav(historical_df, daily_nav_file_path=r"../dailyNAV/NAVAll_2025-06-29.txt", historical_nav_file_path="nav_time_series.csv"):
     date = daily_nav_file_path.split("_")[-1].split(".txt")[0]
     last_update_date = check_last_updated(date)
-    if last_update_date == date:
-        print("skipping updates as last updated for same day")
-        return historical_df
+
+    _date = pd.Timestamp(date).date()
+    _last_update_date = pd.Timestamp(last_update_date).date()
+    if not pd.isna(_last_update_date):
+        if _last_update_date >= _date :
+            print("data updated more recently than specified or today only.")
+            return historical_df
 
     df = pd.read_csv(daily_nav_file_path , delimiter=";")[["Scheme Code" , "Scheme Name", "ISIN Div Payout/ ISIN Growth", "ISIN Div Reinvestment", "Net Asset Value" , "Date"]]
     df = df.drop(df[~df["Scheme Code"].fillna("-").astype(str).apply(lambda x : x.isdigit())].index)

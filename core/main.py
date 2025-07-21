@@ -11,13 +11,18 @@ warnings.simplefilter("ignore",pd.errors.DtypeWarning)
 directory_check = lambda directory: (os.mkdir(directory)) if not os.path.exists(directory) else f"{directory} exists"
 
 #%%
+
+DELTA_DAYS = int(os.environ.get("DELTA_DAYS",0))
+
 historical_nav_directory = "historical_nav/"
 returns_directory = "daily_returns/"
 directory_check(historical_nav_directory)
 directory_check(returns_directory)
 
 output_nav_file_path= os.path.join("nav_time_series.csv")
-output_returns_file_path= os.path.join(returns_directory , f"returns_as_on {pd.Timestamp.today().date()}.csv")
+
+date=pd.Timestamp.today().date() - pd.Timedelta(days=DELTA_DAYS)
+output_returns_file_path= os.path.join(returns_directory , f"returns_as_on {date}.csv")
 
 daily_nav_file = download_amfi_nav()
 #%%

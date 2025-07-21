@@ -20,7 +20,8 @@ mfs = pd.Series(list(map(lambda x : (x["value"], x.text),mfs)))
 
 mfs = mfs[mfs.apply(lambda x : x[0].isalnum())]
 
-today = pd.Timestamp.today().date()
+DELTA_DAYS = int(os.environ.get("DELTA_DAYS",0))
+today = (pd.Timestamp.today() - pd.Timedelta(days=DELTA_DAYS)).date()
 back_10y = today - pd.Timedelta(days= 10*365+3)
 back_5y = today - pd.Timedelta(days= 5*365+2)
 back_3y = today - pd.Timedelta(days= 3*365+1)

@@ -1,13 +1,18 @@
 import requests
 from datetime import datetime
 import os
+import pandas as pd
+
+
 def download_amfi_nav(output_dir="daily_nav"):
+    DELTA_DAYS = int(os.environ.get("DELTA_DAYS",0))
+
     # AMFI daily NAV data URL
     amfi_url = "https://www.amfiindia.com/spages/NAVAll.txt"
     # Create output directory if not exists
     os.makedirs(output_dir, exist_ok=True)
     # Create a timestamped filename
-    today = datetime.now().date()
+    today = pd.Timestamp.today().date() - pd.Timedelta(days=DELTA_DAYS)
     file_path = os.path.join(output_dir, f"NAVAll_{today}.txt")
     try:
         print(f"Downloading NAV data for {today}...")
