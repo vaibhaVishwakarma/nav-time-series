@@ -28,10 +28,12 @@ daily_nav_file = download_amfi_nav()
 #%%
 total_df = consolidater(directory_path=historical_nav_directory,
                         output_nav_file_path=output_nav_file_path)
+total_df.to_csv("historical_nav.csv")
 #%%
 updated_df = update_latest_nav(historical_df=total_df,
                                historical_nav_file_path = output_nav_file_path,
                                daily_nav_file_path= daily_nav_file)
+updated_df.to_csv("upadated.csv")
 #%%
 returns_df = calculate_returns(df=updated_df,
                                return_file_path=output_returns_file_path)

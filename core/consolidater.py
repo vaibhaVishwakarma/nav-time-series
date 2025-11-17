@@ -7,20 +7,25 @@ def consolidater(directory_path = "historical_nav", output_nav_file_path= "nav_t
 
     total_df = pd.DataFrame()
     for file in text_files:
-        print(file)
-        df = pd.read_csv(os.path.join(directory_path , file) ,delimiter=";" )
-        df = df[df["Scheme Code"].fillna("-").astype(str).apply(lambda x : x.isdigit())]
+        try:
+            filepath= os.path.join(directory_path , file)
+            if(not os.path.exists(filepath)): continue
+            print(file)
+            df = pd.read_csv(filepath ,delimiter=";" )
+            df = df[df["Scheme Code"].fillna("-").astype(str).apply(lambda x : x.isdigit())]
 
-        df["Scheme Code"] = df["Scheme Code"].astype(int)
-        df["Net Asset Value"] =df["Net Asset Value"].replace("N.A." ,np.nan)
-        df["Date"] = pd.to_datetime(df['Date'], errors = "coerce").dt.strftime('%Y-%m-%d')
-        df.dropna(subset=['Date',"Net Asset Value"], inplace=True)
-        df["Net Asset Value"] =df["Net Asset Value"].astype(np.float64)
-        df = df[df["Net Asset Value"]!=0]
-        
+            df["Scheme Code"] = df["Scheme Code"].astype(int)
+            df["Net Asset Value"] =df["Net Asset Value"].replace("N.A." ,np.nan)
+            df["Date"] = pd.to_datetime(df['Date'], errors = "coerce").dt.strftime('%Y-%m-%d')
+            df.dropna(subset=['Date',"Net Asset Value"], inplace=True)
+            df["Net Asset Value"] =df["Net Asset Value"].astype(np.float64)
+            df = df[df["Net Asset Value"]!=0]
+            
 
-        df = df.drop(["Sale Price" , "Repurchase Price"] , axis = 1)
-        total_df = pd.concat([total_df, df])
+            df = df.drop(["Sale Price" , "Repurchase Price"] , axis = 1)
+            total_df = pd.concat([total_df, df])
+        except Exception as e:
+            print(f"Skipping {file} as {str(e)}")
     total_df.to_csv(output_nav_file_path, index=False, sep=";")
 
     return total_df

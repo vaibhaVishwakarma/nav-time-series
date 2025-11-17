@@ -19,9 +19,10 @@ print("DELTA_DAYS= ",os.environ.get("DELTA_DAYS",0))
 def main():
     """the program is designed to only calculate for the present day.
         to load any previous data the `core.nav_history_downloader` need execution followed by `main_runner`"""
+    # use when updating database
+    # app = create_app()  # Create the Flask app instance
+    # status = True
 
-    app = create_app()  # Create the Flask app instance
-    status = True
 
     historical_nav_directory = "historical_nav/"
     returns_directory = "daily_returns/"
